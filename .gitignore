@@ -1,0 +1,14 @@
+.DS_Store
+*.log
+
+# Fisher/Tide-managed, reinstalled via `fisher update` from fish_plugins
+/completions/
+/themes/
+/conf.d/_tide_init.fish
+/conf.d/fish_frozen_key_bindings.fish
+/functions/_tide_*
+/functions/tide/
+/functions/tide.fish
+/functions/fisher.fish
+/functions/fish_prompt.fish
+/functions/fish_mode_prompt.fish
