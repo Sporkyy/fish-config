@@ -34,13 +34,16 @@ if status is-interactive
     # abbr expands to the real command in your history, unlike alias.
 
     # Use Homebrew bash instead of macOS system bash
-    abbr -a bash '/opt/homebrew/bin/bash'
+    abbr -a bash /opt/homebrew/bin/bash
 
     # Directory Navigation
     abbr -a .. 'cd ..'
     abbr -a ... 'cd ../..'
     abbr -a .... 'cd ../../..'
     abbr -a ..... 'cd ../../../..'
+    abbr -a ...... 'cd ../../../../..'
+    abbr -a ....... 'cd ../../../../../..'
+    abbr -a ........ 'cd ../../../../../../..'
 
     # File Listing (eza with fallback to macOS ls)
     if type -q eza
