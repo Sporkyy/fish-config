@@ -1,15 +1,21 @@
 # ~/.config/fish/conf.d/10-login.fish
-# Equivalent of ~/.zprofile: login-shell env setup (Homebrew, PATH, umask).
-# fish sources all of conf.d/*.fish on every start; the `status is-login`
-# guard reproduces zsh's login-only scoping.
+# Login-shell environment setup for Homebrew, PATH, and default permissions.
+# Fish sources every conf.d file at startup, so keep login-only work guarded.
 
 if status is-login
-    # MARK: Homebrew (macOS default prefix; Linuxbrew uses /home/linuxbrew/.linuxbrew)
-    set -l brew_bin /opt/homebrew/bin/brew
-    if test (uname) = Linux
-        set brew_bin /home/linuxbrew/.linuxbrew/bin/brew
+    # MARK: Homebrew
+    # Check the standard Apple Silicon, Intel macOS, and Linuxbrew prefixes.
+    set -l brew_bin (command -s brew 2>/dev/null)
+    if test -z "$brew_bin"
+        for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew
+            if test -x $candidate
+                set brew_bin $candidate
+                break
+            end
+        end
     end
-    if test -x "$brew_bin"
+
+    if test -n "$brew_bin"
         "$brew_bin" shellenv | source
 
         # Install casks to ~/Applications (macOS only; casks don't exist on Linuxbrew)

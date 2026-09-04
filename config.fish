@@ -7,12 +7,9 @@ end
 # End of Docker Desktop section.
 
 # ~/.config/fish/config.fish
-# Equivalent of ~/.zshrc: interactive-shell setup (prompt, aliases, integrations).
-# fish has no separate instant-prompt cache to fight with, so this is simpler
-# than the zsh version — no ordering landmines, just gate interactive-only
-# stuff behind `status is-interactive`. Homebrew/PATH/env setup that used to
-# live at the top of this file has moved to conf.d/00-env.fish and
-# conf.d/10-login.fish (the zshenv/zprofile equivalents).
+# Interactive-shell setup for abbreviations and terminal integrations.
+# Environment and login-shell setup live in conf.d/00-env.fish and
+# conf.d/10-login.fish.
 
 if status is-interactive
 
@@ -25,28 +22,22 @@ if status is-interactive
 
     # MARK: Welcome message (macchina)
     # Skip in VS Code terminals where shell integration + short-lived nested
-    # shells make startup noise more likely (mirrors the zsh guard).
+    # shells make startup noise more likely.
     if test "$TERM_PROGRAM" != vscode; and type -q macchina
         macchina
     end
 
-    # MARK: History / options notes
-    # fish's history is unlimited, deduped, and shared across sessions by
-    # default (no HISTSIZE/SAVEHIST/SHARE_HISTORY equivalent needed).
-    # AUTO_CD: fish already does implicit cd when you type a bare directory.
-    # AUTO_PUSHD: fish tracks directory history natively — use `prevd`/`nextd`
-    # (bound to Alt+Left/Alt+Right) or `dirh` instead of a pushd/popd stack.
-    # CORRECT / autosuggestions / syntax highlighting: all built into fish,
-    # no zsh-autosuggestions / zsh-syntax-highlighting plugins needed.
-    # EXTENDED_GLOB / NULL_GLOB: fish's globbing differs from zsh's and has
-    # no direct equivalent; revisit only if a specific alias/function breaks.
-
-    # MARK: Aliases -> abbreviations
+    # MARK: Abbreviations
     # abbr expands to the real command in your history, unlike alias.
 
     # Use Homebrew bash instead of macOS system bash
-    if test "$os" = Darwin; and test -x /opt/homebrew/bin/bash
-        abbr -a bash /opt/homebrew/bin/bash
+    if test "$os" = Darwin
+        for bash_bin in /opt/homebrew/bin/bash /usr/local/bin/bash
+            if test -x "$bash_bin"
+                abbr -a bash "$bash_bin"
+                break
+            end
+        end
     end
 
     # Directory Navigation
@@ -195,13 +186,20 @@ if status is-interactive
     abbr -a path 'echo $PATH | tr " " "\n"'
     abbr -a take mkcd
 
-    # Fish config shortcuts (config.fish is fish's ~/.zshrc equivalent)
+    # Fish config shortcuts
     abbr -a reload 'source ~/.config/fish/config.fish'
     abbr -a fishconfig 'code ~/.config/fish/config.fish'
     # On Linux, a packaged VS Code install already puts `code` on PATH; this
     # override is only needed on macOS where the .app bundle isn't.
     if test "$os" = Darwin
-        abbr -a code '~/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+        for code_bin in \
+                "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
+                "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+            if test -x "$code_bin"
+                abbr -a code "$code_bin"
+                break
+            end
+        end
     end
 
     # Git Shortcuts
@@ -229,7 +227,6 @@ if status is-interactive
 
     # Homebrew (macOS by default; also works if the user has Linuxbrew installed)
     if type -q brew
-        abbr -a brewup 'brew update && brew upgrade && brew cleanup'
         abbr -a brewinfo 'brew leaves | xargs brew desc --eval-all'
     end
 
@@ -244,7 +241,7 @@ if status is-interactive
     abbr -a ghcs 'gh copilot suggest'
     abbr -a ghce 'gh copilot explain'
 
-    # Misc carried over from previous fish setup
+    # Python shortcuts
     abbr -a py python3
     abbr -a pip pip3
 
@@ -260,18 +257,26 @@ if status is-interactive
     # MARK: VSCode Shell Integration
     if test "$TERM_PROGRAM" = vscode
         if test "$os" = Darwin
-            set -l vscode_shell_integration "/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
-            if not test -f "$vscode_shell_integration"
-                set vscode_shell_integration "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
-            end
+            set -l vscode_shell_integration_candidates \
+                "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
+                "$HOME/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
+                "/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
+                "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
         else
-            # Common Linux package locations (.deb/.rpm and Insiders builds)
-            set -l vscode_shell_integration "/usr/share/code/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
-            if not test -f "$vscode_shell_integration"
-                set vscode_shell_integration "/usr/share/code-insiders/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+            # Common Linux package locations, including Arch packages.
+            set -l vscode_shell_integration_candidates \
+                "/usr/share/code/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
+                "/usr/share/code-insiders/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
+                "/usr/lib/code/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
+                "/usr/lib/code-insiders/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+        end
+
+        for vscode_shell_integration in $vscode_shell_integration_candidates
+            if test -f "$vscode_shell_integration"
+                source "$vscode_shell_integration"
+                break
             end
         end
-        test -f "$vscode_shell_integration"; and source "$vscode_shell_integration"
     end
 
     # MARK: RVM
