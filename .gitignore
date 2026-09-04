@@ -1,6 +1,10 @@
 .DS_Store
 *.log
 
+# Universal variables: mostly machine/session churn (tide prompt render
+# cache) plus absolute paths that don't carry across macOS/Linux.
+/fish_variables
+
 # Fisher/Tide-managed, reinstalled via `fisher update` from fish_plugins
 /completions/
 /themes/

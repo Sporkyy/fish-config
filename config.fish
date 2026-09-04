@@ -1,3 +1,11 @@
+# The following lines were added by Docker Desktop to add commands to your PATH.
+# Docker Desktop is macOS/Windows-only; CachyOS installs docker via pacman
+# with no equivalent ~/.docker/bin shim.
+if test (uname) = Darwin
+    fish_add_path $HOME/.docker/bin
+end
+# End of Docker Desktop section.
+
 # ~/.config/fish/config.fish
 # Equivalent of ~/.zshrc: interactive-shell setup (prompt, aliases, integrations).
 # fish has no separate instant-prompt cache to fight with, so this is simpler
@@ -7,6 +15,9 @@
 # conf.d/10-login.fish (the zshenv/zprofile equivalents).
 
 if status is-interactive
+
+    # MARK: OS detection (macOS vs Linux, for cross-platform sections below)
+    set -l os (uname)
 
     # MARK: Colors!
     set -gx CLICOLOR 1
@@ -34,7 +45,9 @@ if status is-interactive
     # abbr expands to the real command in your history, unlike alias.
 
     # Use Homebrew bash instead of macOS system bash
-    abbr -a bash /opt/homebrew/bin/bash
+    if test "$os" = Darwin; and test -x /opt/homebrew/bin/bash
+        abbr -a bash /opt/homebrew/bin/bash
+    end
 
     # Directory Navigation
     abbr -a .. 'cd ..'
@@ -53,8 +66,16 @@ if status is-interactive
         abbr -a lal 'eza -la --icons --git'
         abbr -a lt 'eza -T --icons --level=2'
         abbr -a lsize 'eza -la --icons --sort=size --reverse'
-    else
+    else if test "$os" = Darwin
+        # BSD ls: -G enables color
         abbr -a ls 'ls -G'
+        abbr -a la 'ls -A'
+        abbr -a ll 'ls -lh'
+        abbr -a lal 'ls -Alh'
+        abbr -a lt 'ls -R'
+    else
+        # GNU ls: --color=auto enables color
+        abbr -a ls 'ls --color=auto'
         abbr -a la 'ls -A'
         abbr -a ll 'ls -lh'
         abbr -a lal 'ls -Alh'
@@ -155,19 +176,33 @@ if status is-interactive
 
     # Network & Web
     abbr -a myip 'curl -s ifconfig.me'
-    abbr -a localip 'ipconfig getifaddr en0'
-    abbr -a flushdns 'sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+    if test "$os" = Darwin
+        abbr -a localip 'ipconfig getifaddr en0'
+        abbr -a flushdns 'sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder'
+    else
+        abbr -a localip "ip -4 addr show scope global | awk '/inet/{print \$2}' | cut -d/ -f1 | head -n1"
+        # No flushdns abbr on Linux: the right command depends on the
+        # resolver in use (systemd-resolved vs nscd vs dnsmasq, etc).
+    end
     abbr -a serve 'python3 -m http.server 8000'
 
     # File & Directory
-    abbr -a o 'open .'
+    if test "$os" = Darwin
+        abbr -a o 'open .'
+    else
+        abbr -a o 'xdg-open .'
+    end
     abbr -a path 'echo $PATH | tr " " "\n"'
     abbr -a take mkcd
 
     # Fish config shortcuts (config.fish is fish's ~/.zshrc equivalent)
     abbr -a reload 'source ~/.config/fish/config.fish'
     abbr -a fishconfig 'code ~/.config/fish/config.fish'
-    abbr -a code '~/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+    # On Linux, a packaged VS Code install already puts `code` on PATH; this
+    # override is only needed on macOS where the .app bundle isn't.
+    if test "$os" = Darwin
+        abbr -a code '~/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+    end
 
     # Git Shortcuts
     abbr -a g git
@@ -192,9 +227,11 @@ if status is-interactive
         abbr -a gabsr 'git absorb --and-rebase'
     end
 
-    # Homebrew
-    abbr -a brewup 'brew update && brew upgrade && brew cleanup'
-    abbr -a brewinfo 'brew leaves | xargs brew desc --eval-all'
+    # Homebrew (macOS by default; also works if the user has Linuxbrew installed)
+    if type -q brew
+        abbr -a brewup 'brew update && brew upgrade && brew cleanup'
+        abbr -a brewinfo 'brew leaves | xargs brew desc --eval-all'
+    end
 
     # Docker
     abbr -a d docker
@@ -222,9 +259,17 @@ if status is-interactive
 
     # MARK: VSCode Shell Integration
     if test "$TERM_PROGRAM" = vscode
-        set -l vscode_shell_integration "/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
-        if not test -f "$vscode_shell_integration"
-            set vscode_shell_integration "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+        if test "$os" = Darwin
+            set -l vscode_shell_integration "/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+            if not test -f "$vscode_shell_integration"
+                set vscode_shell_integration "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+            end
+        else
+            # Common Linux package locations (.deb/.rpm and Insiders builds)
+            set -l vscode_shell_integration "/usr/share/code/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+            if not test -f "$vscode_shell_integration"
+                set vscode_shell_integration "/usr/share/code-insiders/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
+            end
         end
         test -f "$vscode_shell_integration"; and source "$vscode_shell_integration"
     end

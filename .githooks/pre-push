@@ -1,0 +1,41 @@
+#!/bin/sh
+# gitleaks pre-push hook: blocks pushes whose new commits contain
+# something that looks like a secret.
+#
+# This lives in .githooks/ (tracked) instead of .git/hooks/ (untracked)
+# so it travels with the repo across machines. Git doesn't pick it up
+# automatically on clone though; run this once per clone:
+#   git config core.hooksPath .githooks
+
+zero=0000000000000000000000000000000000000000
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+    echo "warning: gitleaks not installed, skipping secret scan before push." >&2
+    echo "  macOS:   brew install gitleaks" >&2
+    echo "  Arch:    pacman -S gitleaks (or yay -S gitleaks if not in extra)" >&2
+    exit 0
+fi
+
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    # Deleting a ref: nothing to scan.
+    if [ "$local_sha" = "$zero" ]; then
+        continue
+    fi
+
+    if [ "$remote_sha" = "$zero" ]; then
+        # New branch/ref on the remote: scan its whole history.
+        range="$local_sha"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+
+    if ! gitleaks git --log-opts="$range" .; then
+        echo "gitleaks found a possible secret in commits being pushed ($range)." >&2
+        echo "Fix it, or if it's a false positive, allowlist it in .gitleaks.toml." >&2
+        status=1
+    fi
+done
+
+exit $status

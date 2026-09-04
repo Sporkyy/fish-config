@@ -4,20 +4,28 @@
 # guard reproduces zsh's login-only scoping.
 
 if status is-login
-    # MARK: Homebrew
-    if test -x /opt/homebrew/bin/brew
-        /opt/homebrew/bin/brew shellenv | source
+    # MARK: Homebrew (macOS default prefix; Linuxbrew uses /home/linuxbrew/.linuxbrew)
+    set -l brew_bin /opt/homebrew/bin/brew
+    if test (uname) = Linux
+        set brew_bin /home/linuxbrew/.linuxbrew/bin/brew
     end
+    if test -x "$brew_bin"
+        "$brew_bin" shellenv | source
 
-    # Mercer-specific: Install casks to ~/Applications
-    set -gx HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+        # Install casks to ~/Applications (macOS only; casks don't exist on Linuxbrew)
+        if test (uname) = Darwin
+            set -gx HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+        end
+
+        # MARK: ImageMagick ($HOMEBREW_PREFIX comes from the shellenv sourced above)
+        set -gx MAGICK_HOME "$HOMEBREW_PREFIX/opt/imagemagick"
+        if test -d "$MAGICK_HOME"
+            fish_add_path $MAGICK_HOME/bin
+        end
+    end
 
     # MARK: Default permissions for new files (optional hardening)
     umask 022
-
-    # MARK: ImageMagick
-    set -gx MAGICK_HOME /opt/homebrew/opt/imagemagick
-    fish_add_path $MAGICK_HOME/bin
 
     # Created by `pipx`
     fish_add_path $HOME/.local/bin

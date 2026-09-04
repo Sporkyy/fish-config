@@ -3,5 +3,7 @@
 # Keep minimal — same rationale as the zsh version.
 
 # MARK: ARCHFLAGS
-# Set architecture for Apple Silicon/M1
-set -gx ARCHFLAGS '-arch arm64'
+# Set architecture for Apple Silicon/M1 (meaningless outside macOS)
+if test (uname) = Darwin
+    set -gx ARCHFLAGS '-arch arm64'
+end
