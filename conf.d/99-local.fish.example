@@ -1,0 +1,13 @@
+# ~/.config/fish/conf.d/99-local.fish
+# Machine-local settings that shouldn't live in a public repo: personal
+# paths, account names, tokens, per-host overrides.
+#
+# This file is the tracked template. Copy it, then edit the copy:
+#   cp conf.d/99-local.fish.example conf.d/99-local.fish
+#
+# The copy is gitignored, so anything in it stays on this machine.
+
+# Google Drive mount (macOS only; the path embeds the account address)
+# if test (uname) = Darwin
+#     set -gx gdrive "$HOME/Library/CloudStorage/GoogleDrive-you@example.com/My Drive"
+# end
