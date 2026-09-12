@@ -255,6 +255,12 @@ if status is-interactive
         abbr -a brewinfo 'brew leaves | xargs brew desc --eval-all'
     end
 
+    # MacPorts (macOS; alternative to Homebrew, e.g. on Intel Macs)
+    if type -q port
+        abbr -a portup 'sudo port selfupdate && sudo port upgrade outdated'
+        abbr -a portinfo 'port installed requested'
+    end
+
     # Docker
     abbr -a d docker
     abbr -a dc 'docker compose'

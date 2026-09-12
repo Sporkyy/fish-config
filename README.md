@@ -59,6 +59,11 @@ at startup, so they're deliberately left out.
 
 ## macOS-specific
 
+Two package manager paths are supported, both auto-detected — no config
+edits needed either way:
+
+### Homebrew (Apple Silicon)
+
 1. Install [Homebrew](https://brew.sh) if you haven't.
 2. `brew install fish gitleaks` (add `zoxide`, `fzf`, `eza`, `bat`,
    `ripgrep`, `fd`, `dust`, `duf`, `procs`, `bottom`, `sd`, `git-delta`,
@@ -73,15 +78,34 @@ at startup, so they're deliberately left out.
 5. Docker Desktop, if installed, patches the top of `config.fish` itself on
    install/reinstall; that block is already guarded to only run on Darwin.
 
+### MacPorts (Intel — Homebrew has dropped support for older Intel macOS)
+
+1. Install [MacPorts](https://www.macports.org) if you haven't.
+2. `sudo port install fish gitleaks` (add `zoxide`, `fzf`, `eza`, `bat`,
+   `ripgrep`, `fd`, `dust`, `duf`, `procs`, `bottom`, `sd`, `git-delta`,
+   `jq`, `shellcheck`, `hyperfine`, `tokei`, `tealdeer` (provides the `tldr`
+   binary) as wanted — same `type -q` guarding as the Homebrew list.
+   `macchina` isn't packaged in MacPorts; `cargo install macchina` works
+   since `rust`/`cargo` are MacPorts ports.
+3. Add fish to `/etc/shells` and `chsh -s /opt/local/bin/fish` if it's not
+   already your login shell.
+4. `conf.d/10-login.fish` adds `/opt/local/bin` and `/opt/local/sbin` to PATH
+   and `/opt/local/share/man` to MANPATH automatically — nothing to
+   configure by hand there.
+5. Homebrew-specific bits (ImageMagick's `MAGICK_HOME`, cask install dir) are
+   gated on `brew` being present, so they simply no-op under MacPorts.
+
 ## CachyOS-specific
 
 1. fish is already the default shell, no `chsh` needed.
 2. Install fisher manually (no Homebrew tap for it):
+
    ```fish
    curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
    fisher install jorgebucaran/fisher
    fisher update
    ```
+
 3. `sudo pacman -S gitleaks` (in `extra`).
 4. Optional tools are in `extra`/AUR under the same or similar names:
    `zoxide`, `fzf`, `eza`, `bat`, `ripgrep`, `fd`, `dust`, `duf`, `procs`,

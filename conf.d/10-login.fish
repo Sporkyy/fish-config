@@ -24,6 +24,15 @@ if status is-login
         end
     end
 
+    # MARK: MacPorts (macOS only; alternative to Homebrew on machines where
+    # Homebrew has dropped support, e.g. Intel Macs stuck below macOS 26)
+    if test (uname) = Darwin; and test -d /opt/local/bin
+        fish_add_path --move --path /opt/local/bin /opt/local/sbin
+        if not set -q MANPATH; or not contains /opt/local/share/man $MANPATH
+            set -gx MANPATH /opt/local/share/man $MANPATH
+        end
+    end
+
     # MARK: Default permissions for new files (optional hardening)
     umask 022
 
@@ -35,6 +44,10 @@ if status is-login
 
     # Lando
     fish_add_path $HOME/.lando/bin
+
+    # cargo install (no ~/.cargo/env to source since rust came from a system
+    # package manager rather than rustup)
+    fish_add_path $HOME/.cargo/bin
 
     # MARK: Docker completions
     if not contains "$HOME/.docker/completions" $fish_complete_path
