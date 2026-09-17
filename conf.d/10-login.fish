@@ -12,10 +12,9 @@ if status is-login
     if test -x "$brew_bin"
         "$brew_bin" shellenv | source
 
-        # Install casks to ~/Applications (macOS only; casks don't exist on Linuxbrew)
-        if test (uname) = Darwin
-            set -gx HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
-        end
+        # Cask install dir is per-host, so it lives in 99-local.fish instead of
+        # here — anything in a tracked file would apply on every macOS machine
+        # (see conf.d/99-local.fish.example)
 
         # MARK: ImageMagick ($HOMEBREW_PREFIX comes from the shellenv sourced above)
         set -gx MAGICK_HOME "$HOMEBREW_PREFIX/opt/imagemagick"

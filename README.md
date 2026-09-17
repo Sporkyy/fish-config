@@ -11,9 +11,9 @@ straight into `~/.config/fish`.
 - `conf.d/10-login.fish` — login-shell setup (Homebrew, PATH, umask).
 - `conf.d/uv.env.fish` — sources uv's `~/.local/bin/env.fish` when present.
 - `conf.d/99-local.fish` — **not tracked**: machine-local settings (personal
-  paths, account names, per-host overrides). Copy `99-local.fish.example` to
-  `99-local.fish` and edit the copy; the repo is public, so nothing personal
-  belongs in a tracked file.
+  paths, account names, per-host overrides such as the Homebrew cask appdir).
+  Copy `99-local.fish.example` to `99-local.fish` and edit the copy; the repo
+  is public, so nothing personal belongs in a tracked file.
 - `fish_plugins` — fisher's plugin manifest (currently just fisher + tide).
 - `fish_variables` — **not tracked**, see below.
 - `tide-theme.fish` — tracked snapshot of the tide prompt config, since
@@ -73,9 +73,17 @@ edits needed either way:
 3. Add fish to `/etc/shells` and `chsh -s /opt/homebrew/bin/fish` if it's not
    already your login shell.
 4. `conf.d/10-login.fish` sources `brew shellenv` and wires up
-   Homebrew-specific things (ImageMagick, cask install dir) automatically —
-   nothing to configure by hand there.
-5. Docker Desktop, if installed, patches the top of `config.fish` itself on
+   Homebrew-specific things (ImageMagick, PATH) automatically — nothing to
+   configure by hand there.
+5. Cask install dir is per-host, so no tracked file sets it. To put casks in
+   `~/Applications` instead of `/Applications`, copy `99-local.fish.example`
+   to `99-local.fish` and uncomment the `HOMEBREW_CASK_OPTS` block there.
+   Hosts without that line keep installing casks to `/Applications`.
+   Turning it off later doesn't move casks that are already installed, and
+   `brew reinstall` won't relocate them: Homebrew records the resolved appdir
+   per cask in `Caskroom/<token>/.metadata/config.json` and reuses it. Move
+   one with `brew uninstall --cask <token>` then `brew install --cask <token>`.
+6. Docker Desktop, if installed, patches the top of `config.fish` itself on
    install/reinstall; that block is already guarded to only run on Darwin.
 
 ### MacPorts (Intel — Homebrew has dropped support for older Intel macOS)
@@ -92,8 +100,8 @@ edits needed either way:
 4. `conf.d/10-login.fish` adds `/opt/local/bin` and `/opt/local/sbin` to PATH
    and `/opt/local/share/man` to MANPATH automatically — nothing to
    configure by hand there.
-5. Homebrew-specific bits (ImageMagick's `MAGICK_HOME`, cask install dir) are
-   gated on `brew` being present, so they simply no-op under MacPorts.
+5. Homebrew-specific bits (ImageMagick's `MAGICK_HOME`) are gated on `brew`
+   being present, so they simply no-op under MacPorts.
 
 ## CachyOS-specific
 

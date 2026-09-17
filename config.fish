@@ -220,7 +220,12 @@ if status is-interactive
     # On Linux, a packaged VS Code install already puts `code` on PATH; this
     # override is only needed on macOS where the .app bundle isn't.
     if test "$os" = Darwin
+        # Hosts that set the cask appdir keep VS Code in ~/Applications, so
+        # probe both locations rather than assuming one
         set -l vscode_bin "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+        if not test -x "$vscode_bin"
+            set vscode_bin "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+        end
         if test -x "$vscode_bin"
             abbr -a code (string escape -- "$vscode_bin")
         end
