@@ -8,7 +8,7 @@ function php-cs-fixer --description 'Run php-cs-fixer under PHP 8.5 to match Lan
         set -l php_bin "$php_prefix/bin/php"
 
         if test -x "$php_bin"; and test -d "$fixer_prefix"
-            set -l phar (find "$fixer_prefix" -maxdepth 3 -name '*.phar' 2>/dev/null | head -n 1)
+            set -l phar (find -H "$fixer_prefix" -maxdepth 3 -name '*.phar' 2>/dev/null | head -n 1)
             if test -n "$phar"
                 "$php_bin" "$phar" $argv
                 return $status

@@ -99,7 +99,11 @@ set -U tide_node_color black
 set -U tide_node_icon 
 set -U tide_os_bg_color white
 set -U tide_os_color black
-set -U tide_os_icon 
+# Keep the OS icon selected by Tide on this machine.
+if functions -q _tide_detect_os
+    _tide_detect_os | read -l --line os_icon os_color os_bg_color
+    set -U tide_os_icon "$os_icon"
+end
 set -U tide_php_bg_color blue
 set -U tide_php_color black
 set -U tide_php_icon 

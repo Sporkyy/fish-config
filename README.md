@@ -1,129 +1,102 @@
 # fish config
 
-Personal fish config, shared between macOS and CachyOS. Meant to be cloned
-straight into `~/.config/fish`.
+Shared fish configuration for my MacBook Pro and Mac Mini, with support for
+an eventual CachyOS setup on my gaming PC. CachyOS has not been deployed yet.
 
-## Layout
+## What syncs
 
-- `config.fish`: interactive-shell setup (prompt, abbreviations, tool
-  integrations). OS-specific bits are guarded by `set -l os (uname)` checks.
-- `conf.d/00-env.fish` — runs on every fish invocation (env vars only).
-- `conf.d/10-login.fish` — login-shell setup (Homebrew, PATH, umask).
-- `conf.d/uv.env.fish` — sources uv's `~/.local/bin/env.fish` when present.
-- `conf.d/99-local.fish` — **not tracked**: machine-local settings (personal
-  paths, account names, per-host overrides such as the Homebrew cask appdir).
-  Copy `99-local.fish.example` to `99-local.fish` and edit the copy; the repo
-  is public, so nothing personal belongs in a tracked file.
-- `fish_plugins` — fisher's plugin manifest (currently just fisher + tide).
-- `fish_variables` — **not tracked**, see below.
-- `tide-theme.fish` — tracked snapshot of the tide prompt config, since
-  `fish_variables` isn't tracked. Source it once on a fresh clone.
-- `tide-theme-dump.fish` — regenerates the above after `tide configure`.
-- `.githooks/pre-push` — blocks pushes containing likely secrets (gitleaks).
+- `config.fish`: interactive abbreviations, prompt and terminal integrations.
+- `conf.d/00-env.fish`: architecture, tool paths and Docker completions.
+- `conf.d/10-login.fish`: Homebrew environment and login permissions.
+- `conf.d/uv.env.fish`: optional environment from uv's standalone installer.
+- `functions/`: shared helpers, including `brewup` and `php-cs-fixer`.
+- `fish_plugins`: Fisher and Tide plugin manifest.
+- `tide-theme.fish`: saved prompt settings, applied explicitly on each host.
+- `.githooks/pre-push`: scans outgoing commits with gitleaks when installed.
 
-## Fresh clone, either OS
+`conf.d/99-local.fish` and `fish_variables` are ignored by Git. The former
+holds each machine's preferences; the latter holds universal variables,
+plugin state and prompt caches. Plugins installed by Fisher are also ignored.
+Pulling config does not install tools, update plugins or apply the saved theme.
+
+## Set up a new machine
+
+Back up any existing `~/.config/fish` first. Install fish using the machine's
+package manager, then clone this repository there. From fish:
 
 ```fish
-# back up whatever's already at ~/.config/fish first if it's not empty
-git clone <this-repo-url> ~/.config/fish
 cd ~/.config/fish
-git config core.hooksPath .githooks   # per-clone; doesn't travel with git clone
-```
-
-`fish_variables` is gitignored on purpose: it's mostly tide's prompt render
-cache (churns every session) plus absolute paths that don't carry across
-machines. That means a fresh clone starts with no plugins installed and an
-empty `fish_user_paths` — expected, not broken. Finish setup with:
-
-```fish
+git config core.hooksPath .githooks
 if not type -q fisher
     curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
 end
-fisher update              # installs the plugins listed in fish_plugins
-source tide-theme.fish     # restores the saved tide prompt
-cp conf.d/99-local.fish.example conf.d/99-local.fish   # then edit it
+fisher update
+source tide-theme.fish
+# Only copy the template if no local settings file exists yet.
+test -e conf.d/99-local.fish; or cp conf.d/99-local.fish.example conf.d/99-local.fish
 ```
 
-`fisher update` is not optional: without it there is no `fish_prompt`
-function on disk and you get fish's plain default prompt, no matter what
-`tide-theme.fish` has set.
+Edit the local file for that machine, then open a new terminal. Install a
+Nerd Font and select it in the terminal for Tide's icons. To change the login
+shell, add the installed fish executable to `/etc/shells` if needed, then use
+that same path with `chsh -s`.
 
-`source tide-theme.fish` replaces running `tide configure` — it restores the
-exact saved theme instead of walking the wizard. If you *do* rerun the wizard
-and want to keep the result, re-snapshot it:
+## Sync existing machines
+
+Commit intended shared changes before pulling. Use `git pull --ff-only` for
+a routine update; if histories diverge, review and merge the changes instead
+of resetting either machine. Then open a new terminal to load all startup
+files. The `reload` abbreviation only reloads `config.fish`.
+
+Run `fisher update` when you want to refresh plugins. To adopt the shared
+prompt snapshot, run `source tide-theme.fish`. After changing the prompt with
+`tide configure`, save it with `./tide-theme-dump.fish > tide-theme.fish`.
+The OS icon is detected on the destination host.
+
+The `git-reset-*` helpers deliberately discard changes. In particular,
+`git-reset-scorched` also deletes ignored local settings, universal variables
+and installed plugins. It is not a sync command.
+
+## macOS
+
+Homebrew is detected through PATH or its standard Apple Silicon and Intel
+prefixes. MacPorts uses `/opt/local`. Tool paths are available to login and
+non-login shells, including VS Code tasks. User tool directories come first,
+then MacPorts, then Homebrew when both are present. Missing directories and
+optional tools are skipped.
+
+Common optional tools include `eza`, `bat`, `ripgrep`, `fd`, `dust`, `duf`,
+`procs`, `bottom`, `sd`, `git-delta`, `jq`, `shellcheck`, `hyperfine`, `tokei`,
+`zoxide`, `fzf`, `macchina` and `gitleaks`. Install only what you use through
+the host's package manager. `zoxide` supplies `z` and `zi` shortcuts.
+
+Casks default to Homebrew's `/Applications`. Only the Mac that needs home
+folder installs should enable this in ignored `conf.d/99-local.fish`:
 
 ```fish
-./tide-theme-dump.fish > tide-theme.fish
+if test (uname) = Darwin
+    set -gx HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+end
 ```
 
-The snapshot holds only the durable `tide_*` settings; the `_tide_prompt_*`
-render cache and `_tide_left_items`/`_tide_right_items` are rebuilt by tide
-at startup, so they're deliberately left out.
+Docker Desktop on that Mac belongs in `/Applications`. Use an explicit
+`--appdir=/Applications` when installing its cask and the account's normal
+admin approval process. Homebrew records installation directories per cask;
+changing the default does not move existing apps. The `sudo` helper invokes
+PrivilegesCLI when installed, then runs system sudo.
 
-## macOS-specific
+VS Code is detected under both `~/Applications` and `/Applications`.
+Docker Desktop may rewrite its PATH block in `config.fish`; review that diff
+before committing, retaining the portable `$HOME` path and Darwin guard.
 
-Two package manager paths are supported, both auto-detected — no config
-edits needed either way:
+## Future CachyOS setup
 
-### Homebrew (Apple Silicon)
+Follow the new-machine steps after installing fish and the desired tools.
+Check the installed login shell rather than assuming fish is already active.
+Homebrew is optional; the config also recognizes Linuxbrew's standard prefix.
+macOS architecture settings, Docker Desktop paths and cask preferences are
+not enabled by the shared config on Linux.
 
-1. Install [Homebrew](https://brew.sh) if you haven't.
-2. `brew install fish gitleaks` (add `zoxide`, `fzf`, `eza`, `bat`,
-   `ripgrep`, `fd`, `dust`, `duf`, `procs`, `bottom`, `sd`, `git-delta`,
-   `jq`, `shellcheck`, `hyperfine`, `tokei`, `macchina` as wanted —
-   everything referencing them is guarded with `type -q`, so skipping any of
-   them just skips that abbreviation or integration).
-3. Add `(brew --prefix)/bin/fish` to `/etc/shells` and use that path with
-   `chsh -s` if Fish is not already your login shell.
-4. `conf.d/10-login.fish` sources `brew shellenv` and wires up
-   Homebrew-specific things (ImageMagick, PATH) automatically — nothing to
-   configure by hand there.
-5. Cask install dir is per-host, so no tracked file sets it. To put casks in
-   `~/Applications` instead of `/Applications`, copy `99-local.fish.example`
-   to `99-local.fish` and uncomment the `HOMEBREW_CASK_OPTS` block there.
-   Hosts without that line keep installing casks to `/Applications`.
-   Turning it off later doesn't move casks that are already installed, and
-   `brew reinstall` won't relocate them: Homebrew records the resolved appdir
-   per cask in `Caskroom/<token>/.metadata/config.json` and reuses it. Move
-   one with `brew uninstall --cask <token>` then `brew install --cask <token>`.
-6. Docker Desktop, if installed, patches the top of `config.fish` itself on
-   install/reinstall; that block is already guarded to only run on Darwin.
-
-### MacPorts (Intel — Homebrew has dropped support for older Intel macOS)
-
-1. Install [MacPorts](https://www.macports.org) if you haven't.
-2. `sudo port install fish gitleaks` (add `zoxide`, `fzf`, `eza`, `bat`,
-   `ripgrep`, `fd`, `dust`, `duf`, `procs`, `bottom`, `sd`, `git-delta`,
-   `jq`, `shellcheck`, `hyperfine`, `tokei`, `tealdeer` (provides the `tldr`
-   binary) as wanted — same `type -q` guarding as the Homebrew list.
-   `macchina` isn't packaged in MacPorts; `cargo install macchina` works
-   since `rust`/`cargo` are MacPorts ports.
-3. Add fish to `/etc/shells` and `chsh -s /opt/local/bin/fish` if it's not
-   already your login shell.
-4. `conf.d/10-login.fish` adds `/opt/local/bin` and `/opt/local/sbin` to PATH
-   and `/opt/local/share/man` to MANPATH automatically — nothing to
-   configure by hand there.
-5. Homebrew-specific bits (ImageMagick's `MAGICK_HOME`) are gated on `brew`
-   being present, so they simply no-op under MacPorts.
-
-## CachyOS-specific
-
-1. fish is already the default shell, no `chsh` needed.
-2. Install fisher manually (no Homebrew tap for it):
-
-   ```fish
-   curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
-   fisher install jorgebucaran/fisher
-   fisher update
-   ```
-
-3. `sudo pacman -S gitleaks` (in `extra`).
-4. Optional tools are in `extra`/AUR under the same or similar names:
-   `zoxide`, `fzf`, `eza`, `bat`, `ripgrep`, `fd`, `dust`, `duf`, `procs`,
-   `bottom`, `sd`, `git-delta`, `jq`, `shellcheck`, `hyperfine`, `tokei`,
-   `macchina`.
-5. Homebrew (Linuxbrew) is optional; `conf.d/10-login.fish` checks
-   `/home/linuxbrew/.linuxbrew/bin/brew` and no-ops cleanly if it's absent.
-6. VS Code shell integration is auto-detected in common `/usr/share` and
-   `/usr/lib` package locations. Flatpak and AppImage installs may need an
-   additional path in `config.fish`.
+VS Code integration checks common `/usr/share` and `/usr/lib` locations,
+then asks `code` for its integration path if available. The Linux branches
+can be simulated here, but still need a real startup check on the gaming PC.

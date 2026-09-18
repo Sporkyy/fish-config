@@ -2,7 +2,7 @@
 # Docker Desktop is macOS/Windows-only; CachyOS installs docker via pacman
 # with no equivalent ~/.docker/bin shim.
 if test (uname) = Darwin
-    fish_add_path $HOME/.docker/bin
+    fish_add_path --global --path --append "$HOME/.docker/bin"
 end
 # End of Docker Desktop section.
 
@@ -317,8 +317,8 @@ if status is-interactive
     end
 
     # MARK: Zoxide (smarter cd)
-    # Use `z <dir>` to jump to frequently visited directories, `zi` to pick
-    # interactively. Installs its own `cd` wrapper, so init it late.
+    # Use `z <dir>` to jump to frequently visited directories and `zi` to pick
+    # interactively.
     if type -q zoxide
         zoxide init fish | source
     end

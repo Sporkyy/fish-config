@@ -25,6 +25,14 @@ echo '# runtime, so they are deliberately left out.'
 echo
 
 for name in (set -nU | string match 'tide_*' | sort)
+    # The OS icon belongs to the destination machine, not this snapshot.
+    if test "$name" = tide_os_icon
+        echo 'if functions -q _tide_detect_os'
+        echo '    _tide_detect_os | read -l --line os_icon os_color os_bg_color'
+        echo '    set -U tide_os_icon "$os_icon"'
+        echo 'end'
+        continue
+    end
     set -l vals
     for v in $$name
         set -a vals (string escape -- $v)

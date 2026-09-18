@@ -15,34 +15,53 @@ if test (uname) = Darwin
     end
 end
 
-# MARK: Package-manager prefixes (Homebrew and MacPorts)
-# PATH only, and deliberately here rather than in 10-login.fish: /opt/local/bin
-# and /opt/homebrew/bin are absent from /etc/paths (only Intel Homebrew's
-# /usr/local/bin is listed there), so non-login shells - VS Code task shells run
-# `fish -c`, for one - would otherwise see no node, npm, or port at all. This
-# mirrors ~/.zshenv, which does the same for zsh.
-# Order is priority, MacPorts before Homebrew. $HOME/.local is the pipx and
-# `pip --user` target on every OS. Existence-checked, so this is a no-op where a
-# prefix is absent, and idempotent, so re-sourcing is safe.
-set -l prefixes /opt/local /opt/homebrew /usr/local $HOME/.local
-if test (uname) = Linux
-    set -a prefixes /home/linuxbrew/.linuxbrew
+# MARK: Tool paths
+# Rebuild the same priority in login, non-login, and nested shells without
+# saving machine paths to universal fish_user_paths on every startup.
+set -l prefixes
+switch (uname)
+    case Darwin
+        set prefixes /opt/local /opt/homebrew /usr/local
+    case Linux
+        set prefixes /home/linuxbrew/.linuxbrew /usr/local
 end
-set -l additions
+set -l preferred "$HOME/.local/bin" "$HOME/.cargo/bin" \
+    "$HOME/.cache/lm-studio/bin" "$HOME/.lando/bin"
+if test (uname) = Darwin
+    set -a preferred "$HOME/.docker/bin"
+end
 for prefix in $prefixes
-    for dir in $prefix/bin $prefix/sbin
-        if test -d $dir; and not contains -- $dir $PATH; and not contains -- $dir $additions
-            set -a additions $dir
+    set -a preferred $prefix/bin $prefix/sbin
+end
+set -l ordered
+for dir in $preferred
+    if test -d "$dir"; and not contains -- "$dir" $ordered
+        set -a ordered "$dir"
+    end
+end
+for dir in $PATH
+    # Normalize trailing slashes so inherited entries do not duplicate ours.
+    set dir (string replace -r '([^/])/+$' '$1' -- "$dir")
+    if not contains -- "$dir" $ordered
+        set -a ordered "$dir"
+    end
+end
+set -gx PATH $ordered
+
+# An empty MANPATH entry keeps the system's default manual search paths.
+if test (uname) = Darwin; and test -d /opt/local/share/man
+    if not contains -- /opt/local/share/man $MANPATH
+        if not set -q MANPATH[1]
+            set -gx MANPATH /opt/local/share/man ''
+        else
+            set -gx MANPATH /opt/local/share/man $MANPATH
         end
     end
 end
-if set -q additions[1]
-    set -gx PATH $additions $PATH
-end
 
-# MANPATH for MacPorts; Homebrew's `shellenv` supplies its own in 10-login.fish.
-if test (uname) = Darwin; and test -d /opt/local/share/man
-    if not set -q MANPATH; or not contains /opt/local/share/man $MANPATH
-        set -gx MANPATH /opt/local/share/man $MANPATH
+# Docker completions are also needed by interactive non-login shells.
+if test (uname) = Darwin; and test -d "$HOME/.docker/completions"
+    if not contains -- "$HOME/.docker/completions" $fish_complete_path
+        set -ga fish_complete_path "$HOME/.docker/completions"
     end
 end

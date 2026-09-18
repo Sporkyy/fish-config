@@ -12,7 +12,11 @@ function brewup --description 'Update Homebrew packages and recover from Fish up
     if test $brew_status -eq 0; and not test -x (status fish-path)
         set -l current_fish (command -s fish)
         if test -x "$current_fish"
-            exec "$current_fish"
+            if status is-login
+                exec "$current_fish" --login
+            else
+                exec "$current_fish"
+            end
         end
     end
 
