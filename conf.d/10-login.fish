@@ -14,14 +14,24 @@ if status is-login
             end
         end
     end
-
-    if test -n "$brew_bin"
+    if test -x "$brew_bin"
+        # Supplies HOMEBREW_PREFIX/CELLAR/REPOSITORY plus MANPATH and INFOPATH,
+        # which interactive work wants. PATH itself comes from 00-env.fish so
+        # that non-login shells get it too.
         "$brew_bin" shellenv | source
 
-        # Install casks to ~/Applications (macOS only; casks don't exist on Linuxbrew)
-        if test (uname) = Darwin
-            set -gx HOMEBREW_CASK_OPTS "--appdir=$HOME/Applications"
+        # `brew shellenv` prepends its bin/sbin without checking, duplicating
+        # what 00-env.fish already added (plus /usr/local/bin from /etc/paths on
+        # Intel). Keep the first occurrence of each entry.
+        set -l deduped
+        for dir in $PATH
+            contains -- $dir $deduped; or set -a deduped $dir
         end
+        set -gx PATH $deduped
+
+        # Cask install dir is per-host, so it lives in 99-local.fish instead of
+        # here — anything in a tracked file would apply on every macOS machine
+        # (see conf.d/99-local.fish.example)
 
         # MARK: ImageMagick ($HOMEBREW_PREFIX comes from the shellenv sourced above)
         set -gx MAGICK_HOME "$HOMEBREW_PREFIX/opt/imagemagick"
@@ -29,6 +39,11 @@ if status is-login
             fish_add_path $MAGICK_HOME/bin
         end
     end
+
+    # MARK: MacPorts
+    # PATH and MANPATH for /opt/local are set in 00-env.fish instead: non-login
+    # shells (VS Code tasks) need them too, and `fish_add_path --path` would
+    # only have affected the shell that ran it.
 
     # MARK: Default permissions for new files (optional hardening)
     umask 022
@@ -41,6 +56,10 @@ if status is-login
 
     # Lando
     fish_add_path $HOME/.lando/bin
+
+    # cargo install (no ~/.cargo/env to source since rust came from a system
+    # package manager rather than rustup)
+    fish_add_path $HOME/.cargo/bin
 
     # MARK: Docker completions
     if not contains "$HOME/.docker/completions" $fish_complete_path

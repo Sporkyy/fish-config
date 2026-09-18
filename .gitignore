@@ -5,6 +5,10 @@
 # cache) plus absolute paths that don't carry across macOS/Linux.
 /fish_variables
 
+# Machine-local overrides: personal paths, account names, per-host settings.
+# Tracked template lives at conf.d/99-local.fish.example.
+/conf.d/99-local.fish
+
 # Fisher/Tide-managed, reinstalled via `fisher update` from fish_plugins
 /completions/
 /themes/

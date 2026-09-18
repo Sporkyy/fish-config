@@ -20,11 +20,28 @@ if status is-interactive
     set -gx CLICOLOR 1
     set -gx COLORTERM truecolor
 
+    # MARK: Agent/Copilot sessions
+    # Automated terminals get a minimal prompt instead of tide: the Nerd Font
+    # glyphs and multi-line frame render as garbage in captured output, and
+    # the welcome banner is pure noise there.
+    set -l agent_session false
+    if set -q COPILOT; and string match -qir '^(1|true|yes|on)$' -- "$COPILOT"
+        set agent_session true
+    end
+
+    if test "$agent_session" = true
+        function fish_prompt
+            echo -n (prompt_pwd)'$ '
+        end
+    end
+
     # MARK: Welcome message (macchina)
-    # Skip in VS Code terminals where shell integration + short-lived nested
-    # shells make startup noise more likely.
-    if test "$TERM_PROGRAM" != vscode; and type -q macchina
-        macchina
+    # Login shells only, so nested/subshells don't reprint the banner. Skipped
+    # in VS Code and agent terminals where it's just startup noise.
+    if status is-login; and test "$agent_session" = false
+        if test "$TERM_PROGRAM" != vscode; and type -q macchina
+            macchina
+        end
     end
 
     # MARK: Abbreviations
@@ -51,11 +68,13 @@ if status is-interactive
 
     # File Listing (eza with fallback to macOS ls)
     if type -q eza
-        abbr -a ls 'eza --icons'
-        abbr -a la 'eza -a --icons'
-        abbr -a ll 'eza -l --icons --git'
-        abbr -a lal 'eza -la --icons --git'
-        abbr -a lt 'eza -T --icons --level=2'
+        abbr -a ls 'eza --icons --group-directories-first'
+        abbr -a la 'eza -a --icons --group-directories-first'
+        abbr -a ll 'eza -l --icons --group-directories-first --git'
+        abbr -a lal 'eza -la --icons --group-directories-first --git'
+        abbr -a lla 'eza -la --icons --group-directories-first --git'
+        abbr -a lt 'eza -T --icons --group-directories-first --level=2'
+        abbr -a lta 'eza -T -a --icons --group-directories-first --level=2'
         abbr -a lsize 'eza -la --icons --sort=size --reverse'
     else if test "$os" = Darwin
         # BSD ls: -G enables color
@@ -192,13 +211,14 @@ if status is-interactive
     # On Linux, a packaged VS Code install already puts `code` on PATH; this
     # override is only needed on macOS where the .app bundle isn't.
     if test "$os" = Darwin
-        for code_bin in \
-                "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
-                "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
-            if test -x "$code_bin"
-                abbr -a code "$code_bin"
-                break
-            end
+        # Hosts that set the cask appdir keep VS Code in ~/Applications, so
+        # probe both locations rather than assuming one
+        set -l vscode_bin "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+        if not test -x "$vscode_bin"
+            set vscode_bin "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+        end
+        if test -x "$vscode_bin"
+            abbr -a code (string escape -- "$vscode_bin")
         end
     end
 
@@ -230,6 +250,12 @@ if status is-interactive
         abbr -a brewinfo 'brew leaves | xargs brew desc --eval-all'
     end
 
+    # MacPorts (macOS; alternative to Homebrew, e.g. on Intel Macs)
+    if type -q port
+        abbr -a portup 'sudo port selfupdate && sudo port upgrade outdated'
+        abbr -a portinfo 'port installed requested'
+    end
+
     # Docker
     abbr -a d docker
     abbr -a dc 'docker compose'
@@ -237,9 +263,13 @@ if status is-interactive
     abbr -a dstopall 'docker stop (docker ps -q)'
     abbr -a dprune 'docker system prune -af'
 
-    # GitHub Copilot
-    abbr -a ghcs 'gh copilot suggest'
-    abbr -a ghce 'gh copilot explain'
+    # GitHub Copilot (via the gh CLI)
+    if type -q gh
+        abbr -a ghcs 'gh copilot suggest'
+        abbr -a ghce 'gh copilot explain'
+        abbr -a cps 'gh copilot suggest'
+        abbr -a cpe 'gh copilot explain'
+    end
 
     # Python shortcuts
     abbr -a py python3
@@ -256,15 +286,17 @@ if status is-interactive
 
     # MARK: VSCode Shell Integration
     if test "$TERM_PROGRAM" = vscode
+        set -l vscode_shell_integration
+        set -l vscode_shell_integration_candidates
         if test "$os" = Darwin
-            set -l vscode_shell_integration_candidates \
+            set vscode_shell_integration_candidates \
                 "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
                 "$HOME/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
                 "/Applications/Visual Studio Code.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
                 "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish"
         else
             # Common Linux package locations, including Arch packages.
-            set -l vscode_shell_integration_candidates \
+            set vscode_shell_integration_candidates \
                 "/usr/share/code/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
                 "/usr/share/code-insiders/resources/app/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
                 "/usr/lib/code/out/vs/workbench/contrib/terminal/common/scripts/shellIntegration.fish" \
@@ -273,10 +305,42 @@ if status is-interactive
 
         for vscode_shell_integration in $vscode_shell_integration_candidates
             if test -f "$vscode_shell_integration"
-                source "$vscode_shell_integration"
                 break
             end
         end
+        # Hardcoded paths are the fast path (no Electron launch). Fall back to
+        # the official locator for Flatpak/AppImage/non-standard installs.
+        if not test -f "$vscode_shell_integration"; and command -q code
+            set vscode_shell_integration (code --locate-shell-integration-path fish 2>/dev/null)
+        end
+        test -f "$vscode_shell_integration"; and source "$vscode_shell_integration"
+    end
+
+    # MARK: Zoxide (smarter cd)
+    # Use `z <dir>` to jump to frequently visited directories, `zi` to pick
+    # interactively. Installs its own `cd` wrapper, so init it late.
+    if type -q zoxide
+        zoxide init fish | source
+    end
+
+    # MARK: fzf (fuzzy finder)
+    # Ctrl+T find files, Ctrl+R search history, Alt+C cd into a directory.
+    if type -q fzf
+        fzf --fish | source
+        # Back fzf with fd when available: respects .gitignore and is faster
+        # than the default find-based walker.
+        if type -q fd
+            set -gx FZF_DEFAULT_COMMAND 'fd --type f --hidden --follow --exclude .git'
+            set -gx FZF_CTRL_T_COMMAND $FZF_DEFAULT_COMMAND
+            set -gx FZF_ALT_C_COMMAND 'fd --type d --hidden --follow --exclude .git'
+        end
+    end
+
+    # MARK: Config reload hook
+    # `set _reload_config 1` from anywhere re-sources this file, which is how
+    # editors/scripts can pick up config changes without restarting the shell.
+    function reload-config --on-variable _reload_config
+        source ~/.config/fish/config.fish
     end
 
     # MARK: RVM
