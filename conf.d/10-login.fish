@@ -1,5 +1,5 @@
 # ~/.config/fish/conf.d/10-login.fish
-# Equivalent of ~/.zprofile: login-shell env setup (Homebrew, PATH, umask).
+# Equivalent of ~/.zprofile: login-shell env setup (Homebrew variables, umask).
 # fish sources all of conf.d/*.fish on every start; the `status is-login`
 # guard reproduces zsh's login-only scoping.
 
@@ -10,7 +10,19 @@ if status is-login
         set brew_bin /home/linuxbrew/.linuxbrew/bin/brew
     end
     if test -x "$brew_bin"
+        # Supplies HOMEBREW_PREFIX/CELLAR/REPOSITORY plus MANPATH and INFOPATH,
+        # which interactive work wants. PATH itself comes from 00-env.fish so
+        # that non-login shells get it too.
         "$brew_bin" shellenv | source
+
+        # `brew shellenv` prepends its bin/sbin without checking, duplicating
+        # what 00-env.fish already added (plus /usr/local/bin from /etc/paths on
+        # Intel). Keep the first occurrence of each entry.
+        set -l deduped
+        for dir in $PATH
+            contains -- $dir $deduped; or set -a deduped $dir
+        end
+        set -gx PATH $deduped
 
         # Cask install dir is per-host, so it lives in 99-local.fish instead of
         # here — anything in a tracked file would apply on every macOS machine
@@ -23,14 +35,10 @@ if status is-login
         end
     end
 
-    # MARK: MacPorts (macOS only; alternative to Homebrew on machines where
-    # Homebrew has dropped support, e.g. Intel Macs stuck below macOS 26)
-    if test (uname) = Darwin; and test -d /opt/local/bin
-        fish_add_path --move --path /opt/local/bin /opt/local/sbin
-        if not set -q MANPATH; or not contains /opt/local/share/man $MANPATH
-            set -gx MANPATH /opt/local/share/man $MANPATH
-        end
-    end
+    # MARK: MacPorts
+    # PATH and MANPATH for /opt/local are set in 00-env.fish instead: non-login
+    # shells (VS Code tasks) need them too, and `fish_add_path --path` would
+    # only have affected the shell that ran it.
 
     # MARK: Default permissions for new files (optional hardening)
     umask 022
