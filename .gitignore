@@ -3,7 +3,7 @@
 
 # Universal variables: mostly machine/session churn (tide prompt render
 # cache) plus absolute paths that don't carry across macOS/Linux.
-/fish_variables
+/fish_variables*
 
 # Machine-local overrides: personal paths, account names, per-host settings.
 # Tracked template lives at conf.d/99-local.fish.example.
