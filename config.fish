@@ -39,8 +39,12 @@ if status is-interactive
     # Login shells only, so nested/subshells don't reprint the banner. Skipped
     # in VS Code and agent terminals where it's just startup noise.
     if status is-login; and test "$agent_session" = false
-        if test "$TERM_PROGRAM" != vscode; and type -q macchina
-            macchina
+        if test "$TERM_PROGRAM" != vscode
+            if type -q macchina
+                macchina
+            else if test "$os" = Linux; and test -r /usr/share/cachyos-fish-config/cachyos-config.fish; and type -q fastfetch
+                fastfetch
+            end
         end
     end
 

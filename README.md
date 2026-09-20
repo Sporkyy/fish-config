@@ -1,13 +1,13 @@
 # fish config
 
-Shared fish configuration for my MacBook Pro and Mac Mini, with support for
-an eventual CachyOS setup on my gaming PC. CachyOS has not been deployed yet.
+Shared fish configuration for my MacBook Pro, Mac Mini and CachyOS gaming PC.
 
 ## What syncs
 
 - `config.fish`: interactive abbreviations, prompt and terminal integrations.
 - `conf.d/00-env.fish`: architecture, tool paths and Docker completions.
 - `conf.d/10-login.fish`: Homebrew environment and login permissions.
+- `conf.d/20-cachyos.fish`: guarded CachyOS notifications, pager and shortcuts.
 - `conf.d/uv.env.fish`: optional environment from uv's standalone installer.
 - `functions/`: shared helpers, including `brewup` and `php-cs-fixer`.
 - `fish_plugins`: Fisher and Tide plugin manifest.
@@ -89,7 +89,7 @@ VS Code is detected under both `~/Applications` and `/Applications`.
 Docker Desktop may rewrite its PATH block in `config.fish`; review that diff
 before committing, retaining the portable `$HOME` path and Darwin guard.
 
-## Future CachyOS setup
+## CachyOS
 
 Follow the new-machine steps after installing fish and the desired tools.
 Check the installed login shell rather than assuming fish is already active.
@@ -98,5 +98,25 @@ macOS architecture settings, Docker Desktop paths and cask preferences are
 not enabled by the shared config on Linux.
 
 VS Code integration checks common `/usr/share` and `/usr/lib` locations,
-then asks `code` for its integration path if available. The Linux branches
-can be simulated here, but still need a real startup check on the gaming PC.
+then asks `code` for its integration path if available.
+
+The original device config only sourced the packaged CachyOS preset.
+`20-cachyos.fish` selectively incorporates it when that package is present:
+long-command notifications (10 seconds, low urgency), the bat man-page pager,
+optional `~/.fish_profile` and depot_tools path, and package/system shortcuts.
+`~/.local/bin` and `~/.cargo/bin` are already handled by `00-env.fish`.
+Fastfetch is the login banner when macchina is unavailable; VS Code and
+Copilot sessions skip it, as do nested non-login shells.
+
+Shared abbreviations take precedence over the preset's competing aliases.
+The preset's literal `!`/`$` key bindings, timestamped history wrapper,
+`copy`/`backup` helpers, `apt` aliases and pacman lock-deletion shortcut are
+not imported. `cleanup` checks for orphaned packages before invoking pacman.
+The original `fish-ONDEVICE` directory remains the backup.
+
+CachyOS supplies Pure and Fisher system-wide on this PC. Tide is now installed
+system-wide under `/etc/fish`, and the saved shared theme has been applied
+to this user's universal variables. Tide takes precedence over vendor Pure.
+The existing Pure universal settings are identical in the two directories;
+the original notification preferences are restored locally. Its universal
+`fish_user_paths` entry is redundant with the shared portable PATH setup.
