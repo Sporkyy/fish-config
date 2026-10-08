@@ -180,7 +180,7 @@ if status is-interactive
     abbr -a cp 'cp -i'
     abbr -a mv 'mv -i'
     abbr -a rm 'rm -i'
-    abbr -a rmdir 'rmdir -p'
+    abbr -a rmdp 'rmdir -p'
 
     # Search fallback
     abbr -a grep 'grep --color=auto'
