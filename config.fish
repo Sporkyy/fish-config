@@ -51,9 +51,9 @@ if status is-interactive
     # MARK: Abbreviations
     # abbr expands to the real command in your history, unlike alias.
 
-    # Use Homebrew bash instead of macOS system bash
+    # Use MacPorts or Homebrew bash instead of macOS system bash, in PATH order
     if test "$os" = Darwin
-        for bash_bin in /opt/homebrew/bin/bash /usr/local/bin/bash
+        for bash_bin in /opt/local/bin/bash /opt/homebrew/bin/bash /usr/local/bin/bash
             if test -x "$bash_bin"
                 abbr -a bash "$bash_bin"
                 break

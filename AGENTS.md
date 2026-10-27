@@ -1,7 +1,9 @@
 # Project context
 
 This repository is the user's live `~/.config/fish` directory, shared between
-macOS (Intel and Apple Silicon) and CachyOS Linux. Changes can affect the next
+macOS (Intel and Apple Silicon) and CachyOS Linux. Apple Silicon Macs use
+Homebrew; Intel Macs such as the Mac Mini use MacPorts under `/opt/local`,
+because Homebrew has deprecated Intel macOS. Changes can affect the next
 shell startup. Read [README.md](README.md) for setup and host-specific details.
 
 ## File map
@@ -22,6 +24,8 @@ shell startup. Read [README.md](README.md) for setup and host-specific details.
 
 - Keep changes portable. Guard OS-specific code, optional commands and paths;
   use `$HOME` instead of hardcoded user directories.
+- Do not assume Homebrew on macOS. Guard `brew` usage, and document or support
+  the MacPorts equivalent for Intel Macs.
 - Keep interactive work inside `status is-interactive` and login-only work
   inside `status is-login`. Noninteractive shells should remain quiet and fast.
 - Prefer abbreviations for command shortcuts, following the existing style.

@@ -11,7 +11,8 @@ zero=0000000000000000000000000000000000000000
 
 if ! command -v gitleaks >/dev/null 2>&1; then
     echo "warning: gitleaks not installed, skipping secret scan before push." >&2
-    echo "  macOS:   brew install gitleaks" >&2
+    echo "  macOS:   brew install gitleaks (Apple Silicon)" >&2
+    echo "           sudo port install gitleaks (Intel, MacPorts)" >&2
     echo "  Arch:    pacman -S gitleaks (or yay -S gitleaks if not in extra)" >&2
     exit 0
 fi

@@ -1,6 +1,7 @@
 # fish config
 
-Shared fish configuration for my MacBook Pro, Mac Mini and CachyOS gaming PC.
+Shared fish configuration for my MacBook Pro, Intel Mac Mini and CachyOS
+gaming PC.
 
 ## What syncs
 
@@ -22,7 +23,8 @@ Pulling config does not install tools, update plugins or apply the saved theme.
 ## Set up a new machine
 
 Back up any existing `~/.config/fish` first. Install fish using the machine's
-package manager, then clone this repository there. From fish:
+package manager (on a Mac, see [which one](#package-manager)), then clone this
+repository there. From fish:
 
 ```fish
 cd ~/.config/fish
@@ -62,6 +64,33 @@ and installed plugins. It is not a sync command.
 
 ## macOS
 
+### Package manager
+
+Use Homebrew on Apple Silicon Macs and MacPorts on Intel Macs, such as the
+Mac Mini. Homebrew moved Intel macOS to its unsupported Tier 3 in September
+2026, with no CI and no new prebuilt bottles, and plans to stop running on
+Intel Macs entirely from September 2027.
+
+On an Intel Mac, install Xcode's command line tools and the MacPorts package
+for that macOS version from macports.org, then install fish and the tools:
+
+```fish
+sudo port selfupdate
+sudo port install fish gitleaks
+```
+
+The MacPorts login shell is `/opt/local/bin/fish`. Update ports with the
+`portup` abbreviation and list requested ports with `portinfo`. `macchina` has
+no port, so skip it. An existing Intel Homebrew under `/usr/local` can stay
+during the move, since MacPorts comes first in PATH; uninstall it once its
+tools are replaced. The `bash` abbreviation uses MacPorts bash
+(`sudo port install bash`) before Homebrew's. `brewup`, `brewinfo`, the
+Homebrew PHP used
+by `php-cs-fixer`, ImageMagick's `MAGICK_HOME` and the cask settings below
+apply only where Homebrew is installed.
+
+### Paths and tools
+
 Homebrew is detected through PATH or its standard Apple Silicon and Intel
 prefixes. MacPorts uses `/opt/local`. Tool paths are available to login and
 non-login shells, including VS Code tasks. User tool directories come first,
@@ -73,7 +102,10 @@ Common optional tools include `eza`, `bat`, `ripgrep`, `fd`, `dust`, `duf`,
 `zoxide`, `fzf`, `macchina` and `gitleaks`. Install only what you use through
 the host's package manager. `zoxide` supplies `z` and `zi` shortcuts.
 
-Casks default to Homebrew's `/Applications`. Only the Mac that needs home
+### Homebrew casks
+
+Casks are a Homebrew feature, so this applies to Apple Silicon Macs; on an
+Intel Mac, install apps from their vendors instead. Casks default to Homebrew's `/Applications`. Only the Mac that needs home
 folder installs should enable this in ignored `conf.d/99-local.fish`:
 
 ```fish
@@ -87,6 +119,8 @@ Docker Desktop on that Mac belongs in `/Applications`. Use an explicit
 admin approval process. Homebrew records installation directories per cask;
 changing the default does not move existing apps. The `sudo` helper invokes
 PrivilegesCLI when installed, then runs system sudo.
+
+### Apps
 
 VS Code is detected under both `~/Applications` and `/Applications`.
 Docker Desktop may rewrite its PATH block in `config.fish`; review that diff
