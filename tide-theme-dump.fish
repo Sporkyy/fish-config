@@ -46,8 +46,6 @@ for name in (set -nU | string match 'tide_*' | sort)
 end
 
 echo
-echo '# Tide v7 renamed the git/jj items to vcs. Migrate right away so open v7'
-echo '# shells never render the v6 names; Tide v6 lacks the helper and keeps git.'
-echo 'if functions -q _tide_migrate_vcs_prompt_items'
-echo '    _tide_migrate_vcs_prompt_items'
-echo 'end'
+echo '# Run the installed Tide'"'"'s upgrade handler right away so open v7 shells'
+echo '# never render the v6 git name. Tide v6'"'"'s handler leaves git in place.'
+echo 'emit _tide_init_update'

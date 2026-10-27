@@ -184,8 +184,6 @@ set -U tide_zig_bg_color yellow
 set -U tide_zig_color black
 set -U tide_zig_icon 
 
-# Tide v7 renamed the git/jj items to vcs. Migrate right away so open v7
-# shells never render the v6 names; Tide v6 lacks the helper and keeps git.
-if functions -q _tide_migrate_vcs_prompt_items
-    _tide_migrate_vcs_prompt_items
-end
+# Run the installed Tide's upgrade handler right away so open v7 shells
+# never render the v6 git name. Tide v6's handler leaves git in place.
+emit _tide_init_update
