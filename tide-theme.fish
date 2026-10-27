@@ -133,7 +133,7 @@ set -U tide_pwd_color_truncated_dirs white
 set -U tide_pwd_icon 
 set -U tide_pwd_icon_home 
 set -U tide_pwd_icon_unwritable 
-set -U tide_pwd_markers .bzr .citc .git .hg .node-version .python-version .ruby-version .shorten_folder_marker .svn .terraform bun.lockb Cargo.toml composer.json CVS go.mod package.json build.zig
+set -U tide_pwd_markers .bzr .citc .git .hg .jj .node-version .python-version .ruby-version .shorten_folder_marker .svn .terraform bun.lockb Cargo.toml composer.json CVS go.mod package.json build.zig
 set -U tide_python_bg_color brblack
 set -U tide_python_color cyan
 set -U tide_python_icon 󰌠
