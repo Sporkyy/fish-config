@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Enable gitleaks pre-push hook",
+            "detail": "Point this clone's Git hooks at the tracked .githooks directory.",
+            "type": "process",
+            "command": "git",
+            "args": ["config", "core.hooksPath", ".githooks"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent"
+            }
+        }
+    ]
+}

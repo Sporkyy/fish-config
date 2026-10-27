@@ -36,7 +36,9 @@ source tide-theme.fish
 test -e conf.d/99-local.fish; or cp conf.d/99-local.fish.example conf.d/99-local.fish
 ```
 
-Edit the local file for that machine, then open a new terminal. Install a
+In VS Code, the "Enable gitleaks pre-push hook" task runs the same
+`core.hooksPath` setting. Edit the local file for that machine, then open a
+new terminal. Install a
 Nerd Font and select it in the terminal for Tide's icons. To change the login
 shell, add the installed fish executable to `/etc/shells` if needed, then use
 that same path with `chsh -s`.
