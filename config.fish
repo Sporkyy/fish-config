@@ -280,8 +280,17 @@ if status is-interactive
     abbr -a pip pip3
 
     # MARK: Tide prompt
-    # Installed/configured via fisher; see IlanCosman/tide. Run `tide configure`
-    # to redo the wizard.
+    # Installed via Fisher on Macs or the fish-tide package on CachyOS. Run
+    # `tide configure` to redo the wizard.
+    # Tide v7 renamed git/jj items to vcs. Package upgrades don't emit Fisher's
+    # update event, so migrate saved v6 settings before the prompt loads.
+    # Only check while a v6 name remains; the function guard keeps this
+    # compatible with Tide v6 on the other machines.
+    set -l tide_items $tide_left_prompt_items $tide_right_prompt_items
+    if contains git $tide_items; or contains jj $tide_items
+        and functions -q _tide_migrate_vcs_prompt_items
+        _tide_migrate_vcs_prompt_items
+    end
 
     # MARK: iTerm2 Shell Integration
     if test "$TERM_PROGRAM" = "iTerm.app"; and test -f "$HOME/.iterm2_shell_integration.fish"

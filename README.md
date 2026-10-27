@@ -49,7 +49,8 @@ of resetting either machine. Then open a new terminal to load all startup
 files. The `reload` abbreviation only reloads `config.fish`.
 
 Run `fisher update` when you want to refresh plugins. To adopt the shared
-prompt snapshot, run `source tide-theme.fish`. After changing the prompt with
+prompt snapshot, run `source tide-theme.fish`, then `exec fish` in each open
+shell. After changing the prompt with
 `tide configure`, save it with `./tide-theme-dump.fish > tide-theme.fish`.
 The OS icon is detected on the destination host.
 
@@ -117,6 +118,13 @@ The original `fish-ONDEVICE` directory remains the backup.
 CachyOS supplies Pure and Fisher system-wide on this PC. Tide is now installed
 system-wide under `/etc/fish`, and the saved shared theme has been applied
 to this user's universal variables. Tide takes precedence over vendor Pure.
+The `fish-tide` 7.2 upgrade renamed the `git`/`jj` prompt items to `vcs`, but
+its package install script does not run Fisher's update migration. The shared
+config calls Tide's migration helper when available, preserving Tide v6
+compatibility on Macs. The saved theme keeps the v6 `git` name, includes the
+v7 `tide_jj_*` colors, and migrates itself when sourced on v7; the dump script
+writes `vcs` back as `git`. Open a new terminal or run `exec fish` after an
+upgrade or after applying the theme to reload the prompt in each open shell.
 The existing Pure universal settings are identical in the two directories;
 the original notification preferences are restored locally. Its universal
 `fish_user_paths` entry is redundant with the shared portable PATH setup.

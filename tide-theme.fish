@@ -78,6 +78,12 @@ set -U tide_go_icon 
 set -U tide_java_bg_color yellow
 set -U tide_java_color black
 set -U tide_java_icon 
+set -U tide_jj_ancestor_bookmark_limit 1
+set -U tide_jj_bg_color green
+set -U tide_jj_color black
+set -U tide_jj_fit_width true
+set -U tide_jj_icon 
+set -U tide_jj_show_description false
 set -U tide_jobs_bg_color brblack
 set -U tide_jobs_color green
 set -U tide_jobs_icon 
@@ -177,3 +183,9 @@ set -U tide_vi_mode_icon_visual V
 set -U tide_zig_bg_color yellow
 set -U tide_zig_color black
 set -U tide_zig_icon 
+
+# Tide v7 renamed the git/jj items to vcs. Migrate right away so open v7
+# shells never render the v6 names; Tide v6 lacks the helper and keeps git.
+if functions -q _tide_migrate_vcs_prompt_items
+    _tide_migrate_vcs_prompt_items
+end

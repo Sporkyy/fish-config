@@ -27,6 +27,7 @@ echo
 for name in (set -nU | string match 'tide_*' | sort)
     # The OS icon belongs to the destination machine, not this snapshot.
     if test "$name" = tide_os_icon
+        echo '# Keep the OS icon selected by Tide on this machine.'
         echo 'if functions -q _tide_detect_os'
         echo '    _tide_detect_os | read -l --line os_icon os_color os_bg_color'
         echo '    set -U tide_os_icon "$os_icon"'
@@ -35,7 +36,18 @@ for name in (set -nU | string match 'tide_*' | sort)
     end
     set -l vals
     for v in $$name
+        # Tide v7 renamed git to vcs; keep the shared snapshot v6-compatible.
+        if string match -q 'tide_*_prompt_items' -- $name; and test "$v" = vcs
+            set v git
+        end
         set -a vals (string escape -- $v)
     end
     echo "set -U $name $vals"
 end
+
+echo
+echo '# Tide v7 renamed the git/jj items to vcs. Migrate right away so open v7'
+echo '# shells never render the v6 names; Tide v6 lacks the helper and keeps git.'
+echo 'if functions -q _tide_migrate_vcs_prompt_items'
+echo '    _tide_migrate_vcs_prompt_items'
+echo 'end'
