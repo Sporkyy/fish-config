@@ -15,7 +15,8 @@ shell startup. Read [README.md](README.md) for setup and host-specific details.
 - `conf.d/20-cachyos.fish`: selected CachyOS integrations and shortcuts.
 - `conf.d/uv.env.fish`: optional uv environment setup.
 - `functions/`: autoloaded Fish helpers, one function per matching filename.
-- `fish_plugins`: Fisher plugin manifest; currently Fisher and Tide v6.
+- `fish_plugins`: Fisher plugin manifest; currently Fisher and the
+  `plttn/tide` v7 fork.
 - `tide-theme.fish`: shared snapshot of durable Tide settings.
 - `tide-theme-dump.fish`: regenerates that snapshot from this host's settings.
 - `.githooks/pre-push`: scans outgoing commits with gitleaks when installed.
@@ -40,8 +41,11 @@ shell startup. Read [README.md](README.md) for setup and host-specific details.
 
 ## Tide compatibility
 
-Macs use Fisher's Tide v6; this CachyOS host uses the system `fish-tide` package
-under `/etc/fish`. Tide v7 renamed the `git`/`jj` prompt items to `vcs`.
+All hosts run Tide v7 from the `plttn/tide` fork: Macs through Fisher, and this
+CachyOS host through the system `fish-tide` package under `/etc/fish`. Do not
+run `fisher update` on CachyOS; it would install a second Tide copy that
+shadows the package and resets the theme to Tide's defaults.
+Tide v7 renamed the `git`/`jj` prompt items to `vcs`.
 Package upgrades skip Fisher's update event, so `config.fish` emits
 `_tide_init_update` once per `tide --version`, tracked in the universal
 `_tide_config_version`. Preserve this; it works on both v6 and v7.

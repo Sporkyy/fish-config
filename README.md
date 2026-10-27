@@ -52,7 +52,8 @@ a routine update; if histories diverge, review and merge the changes instead
 of resetting either machine. Then open a new terminal to load all startup
 files. The `reload` abbreviation only reloads `config.fish`.
 
-Run `fisher update` when you want to refresh plugins. To adopt the shared
+Run `fisher update` on the Macs when you want to refresh plugins; CachyOS
+updates Tide through its package instead. To adopt the shared
 prompt snapshot, run `source tide-theme.fish`, then `exec fish` in each open
 shell. After changing the prompt with
 `tide configure`, save it with `./tide-theme-dump.fish > tide-theme.fish`.
@@ -154,6 +155,11 @@ The original `fish-ONDEVICE` directory remains the backup.
 CachyOS supplies Pure and Fisher system-wide on this PC. Tide is now installed
 system-wide under `/etc/fish`, and the saved shared theme has been applied
 to this user's universal variables. Tide takes precedence over vendor Pure.
+The `fish-tide` package builds the same `plttn/tide` v7 fork that the Macs
+install through `fish_plugins`, so update it with pacman. Skip `fisher update`
+on this PC: Fisher would install a second copy in `~/.config/fish` that
+shadows the package, and Tide's install handler would reset the prompt to its
+defaults until `tide-theme.fish` is sourced again.
 The `fish-tide` 7.2 upgrade renamed the `git`/`jj` prompt items to `vcs`, but
 its package install script does not run Fisher's update migration. The shared
 config emits Tide's update event once whenever `tide --version` changes,
