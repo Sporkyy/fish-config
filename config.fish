@@ -291,6 +291,10 @@ if status is-interactive
             emit _tide_init_update
             set -U _tide_config_version $tide_version
         end
+        # Restore Quoin colors after pulling changes or reinstalling Tide.
+        if test -r "$__fish_config_dir/tide-colors.fish"
+            source "$__fish_config_dir/tide-colors.fish"
+        end
     end
 
     # MARK: iTerm2 Shell Integration

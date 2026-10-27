@@ -18,6 +18,7 @@ shell startup. Read [README.md](README.md) for setup and host-specific details.
 - `fish_plugins`: Fisher plugin manifest; currently Fisher and the
   `plttn/tide` v7 fork.
 - `tide-theme.fish`: shared snapshot of durable Tide settings.
+- `tide-colors.fish`: generated Quoin color overrides, reapplied at interactive startup.
 - `tide-theme-dump.fish`: regenerates that snapshot from this host's settings.
 - `.githooks/pre-push`: scans outgoing commits with gitleaks when installed.
 
@@ -54,7 +55,8 @@ back as `git`. Sourcing the theme on v7 migrates it immediately. Pulling this re
 
 ## Validation
 
-There is no build step or automated test suite. Parse each changed Fish file
+There is no build step. Run `python3 -m unittest discover -s tests` for isolated
+Tide color persistence checks. Parse each changed Fish file
 without loading startup configuration, for example:
 
 ```sh

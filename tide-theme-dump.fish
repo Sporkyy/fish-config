@@ -24,7 +24,11 @@ echo '# cache and _tide_left_items/_tide_right_items are derived by tide at'
 echo '# runtime, so they are deliberately left out.'
 echo
 
+# Keep Quoin's managed colors in the generated overlay, even after a reset.
+set -l quoin_colors tide_aws_color tide_jobs_bg_color tide_pwd_bg_color \
+    tide_python_bg_color tide_status_bg_color_failure
 for name in (set -nU | string match 'tide_*' | sort)
+    contains -- $name $quoin_colors; and continue
     # The OS icon belongs to the destination machine, not this snapshot.
     if test "$name" = tide_os_icon
         echo '# Keep the OS icon selected by Tide on this machine.'
@@ -49,3 +53,8 @@ echo
 echo '# Run the installed Tide'"'"'s upgrade handler right away so open v7 shells'
 echo '# never render the v6 git name. Tide v6'"'"'s handler leaves git in place.'
 echo 'emit _tide_init_update'
+echo
+echo '# Quoin'"'"'s generated color overrides are kept separate from this snapshot.'
+echo 'if test -r (status dirname)/tide-colors.fish'
+echo '    source (status dirname)/tide-colors.fish'
+echo 'end'

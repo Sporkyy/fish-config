@@ -13,6 +13,7 @@ gaming PC.
 - `functions/`: shared helpers, including `brewup` and `php-cs-fixer`.
 - `fish_plugins`: Fisher and Tide plugin manifest.
 - `tide-theme.fish`: saved prompt settings, applied explicitly on each host.
+- `tide-colors.fish`: Quoin color overrides, restored at interactive startup.
 - `.githooks/pre-push`: scans outgoing commits with gitleaks when installed.
 
 `conf.d/99-local.fish` and `fish_variables` are ignored by Git. The former
@@ -58,6 +59,26 @@ prompt snapshot, run `source tide-theme.fish`, then `exec fish` in each open
 shell. After changing the prompt with
 `tide configure`, save it with `./tide-theme-dump.fish > tide-theme.fish`.
 The OS icon is detected on the destination host.
+
+Quoin's five color overrides live separately in `tide-colors.fish`. Interactive
+startup reapplies them when Tide is installed, writing only changed values.
+A reinstall or `tide configure` can replace colors in the current shell; the
+next shell restores them. To restore immediately, run:
+
+```fish
+source ~/.config/fish/tide-colors.fish
+tide reload
+```
+
+The full theme snapshot also loads this overlay, and the dump script leaves
+these five colors out of snapshots. Prompt layout, icons and other settings
+remain in `tide-theme.fish` and are still applied explicitly.
+
+Use Quoin's matching terminal palette in iTerm2 and Alacritty. The standalone
+overlay is generated in the Quoin project as `themes/tide/quoin.fish`. After
+changing Quoin's palette, run `make gen` there and copy that artifact to this
+repository's `tide-colors.fish`. Commit the refreshed copy with the shared Fish
+configuration. Shell startup needs no Quoin checkout or network access.
 
 The `git-reset-*` helpers deliberately discard changes. In particular,
 `git-reset-scorched` also deletes ignored local settings, universal variables
@@ -171,3 +192,10 @@ upgrade or after applying the theme to reload the prompt in each open shell.
 The existing Pure universal settings are identical in the two directories;
 the original notification preferences are restored locally. Its universal
 `fish_user_paths` entry is redundant with the shared portable PATH setup.
+
+## Validation
+
+Run `python3 -m unittest discover -s tests` for isolated Tide color persistence
+checks. They require Fish and use a temporary configuration directory without
+changing the live universal variables. Parse changed Fish files with
+`fish --no-config --no-execute FILE`, then run `git diff --check`.
