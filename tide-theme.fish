@@ -15,7 +15,7 @@
 # runtime, so they are deliberately left out.
 
 set -U tide_aws_bg_color yellow
-set -U tide_aws_color brblack
+set -U tide_aws_color black
 set -U tide_aws_icon 
 set -U tide_bun_bg_color white
 set -U tide_bun_color black
@@ -84,7 +84,7 @@ set -U tide_jj_color black
 set -U tide_jj_fit_width true
 set -U tide_jj_icon 
 set -U tide_jj_show_description false
-set -U tide_jobs_bg_color brblack
+set -U tide_jobs_bg_color 2a2f37
 set -U tide_jobs_color green
 set -U tide_jobs_icon 
 set -U tide_jobs_number_threshold 1000
@@ -126,7 +126,7 @@ set -U tide_prompt_transient_enabled true
 set -U tide_pulumi_bg_color yellow
 set -U tide_pulumi_color black
 set -U tide_pulumi_icon 
-set -U tide_pwd_bg_color blue
+set -U tide_pwd_bg_color 263f73
 set -U tide_pwd_color_anchors brwhite
 set -U tide_pwd_color_dirs brwhite
 set -U tide_pwd_color_truncated_dirs white
@@ -134,7 +134,7 @@ set -U tide_pwd_icon 
 set -U tide_pwd_icon_home 
 set -U tide_pwd_icon_unwritable 
 set -U tide_pwd_markers .bzr .citc .git .hg .jj .node-version .python-version .ruby-version .shorten_folder_marker .svn .terraform bun.lockb Cargo.toml composer.json CVS go.mod package.json build.zig
-set -U tide_python_bg_color brblack
+set -U tide_python_bg_color 2a2f37
 set -U tide_python_color cyan
 set -U tide_python_icon 󰌠
 set -U tide_right_prompt_frame_enabled false
@@ -154,7 +154,7 @@ set -U tide_shlvl_color black
 set -U tide_shlvl_icon 
 set -U tide_shlvl_threshold 1
 set -U tide_status_bg_color black
-set -U tide_status_bg_color_failure red
+set -U tide_status_bg_color_failure 732632
 set -U tide_status_color green
 set -U tide_status_color_failure bryellow
 set -U tide_status_icon ✔
