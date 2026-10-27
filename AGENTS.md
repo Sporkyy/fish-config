@@ -38,10 +38,11 @@ shell startup. Read [README.md](README.md) for setup and host-specific details.
 
 Macs use Fisher's Tide v6; this CachyOS host uses the system `fish-tide` package
 under `/etc/fish`. Tide v7 renamed the `git`/`jj` prompt items to `vcs`.
-`config.fish` calls `_tide_migrate_vcs_prompt_items` only when available because
-package upgrades skip Fisher's migration event. Preserve this v6/v7 guard.
-The saved theme still uses v6 item names and migrates on the next interactive
-startup on v7. Pulling this repository does not install plugins or apply themes.
+Package upgrades skip Fisher's update event, so `config.fish` emits
+`_tide_init_update` once per `tide --version`, tracked in the universal
+`_tide_config_version`. Preserve this; it works on both v6 and v7.
+The saved theme keeps v6 item names, and `tide-theme-dump.fish` writes `vcs`
+back as `git`. Sourcing the theme on v7 migrates it immediately. Pulling this repository does not install plugins or apply themes.
 
 ## Validation
 
