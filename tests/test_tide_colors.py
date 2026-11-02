@@ -69,6 +69,9 @@ class TideColorsTest(unittest.TestCase):
 
     def test_missing_tide_does_not_apply_colors(self):
         (self.config / "functions/tide.fish").unlink()
+        # A system package (e.g. fish-tide under /etc/fish) can't be hidden here.
+        if self.fish("functions -q tide; echo $status") == "0\n":
+            self.skipTest("Tide is installed outside the Fish configuration directory")
         self.assertEqual(self.fish("set -qU tide_pwd_bg_color; echo $status", interactive=True), "1\n")
 
     def test_reapplying_colors_does_not_write_unchanged_variables(self):
