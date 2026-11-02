@@ -25,15 +25,29 @@ Pulling config does not install tools, update plugins or apply the saved theme.
 
 Back up any existing `~/.config/fish` first. Install fish using the machine's
 package manager (on a Mac, see [which one](#package-manager)), then clone this
-repository there. From fish:
+repository there. On CachyOS, also install the `fish-tide` package through
+pacman; it provides Tide system-wide. From fish on every host:
 
 ```fish
 cd ~/.config/fish
 git config core.hooksPath .githooks
+```
+
+On the Macs, install Fisher if needed and install the plugins from
+`fish_plugins`:
+
+```fish
 if not type -q fisher
     curl -fsSL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source
 end
 fisher update
+```
+
+On CachyOS, skip the Fisher commands above to avoid installing a second Tide
+copy that shadows the package. On every host, apply the shared theme and
+create local settings if needed:
+
+```fish
 source tide-theme.fish
 # Only copy the template if no local settings file exists yet.
 test -e conf.d/99-local.fish; or cp conf.d/99-local.fish.example conf.d/99-local.fish
@@ -150,7 +164,8 @@ before committing, retaining the portable `$HOME` path and Darwin guard.
 
 ## CachyOS
 
-Follow the new-machine steps after installing fish and the desired tools.
+Follow the new-machine steps after installing fish, the `fish-tide` package
+and the desired tools. Skip the Mac-only Fisher commands in those steps.
 Check the installed login shell rather than assuming fish is already active.
 Homebrew is optional; the config also recognizes Linuxbrew's standard prefix.
 macOS architecture settings, Docker Desktop paths and cask preferences are
